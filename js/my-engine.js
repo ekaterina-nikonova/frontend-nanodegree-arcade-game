@@ -43,32 +43,40 @@ var Engine = (function(global) {
         this.waterNum = 4;
         this.waterBlocks = [0, 2, 4, 6];
         this.waterLife = 8;
-        this.hops = {value: 10}; //EN: have to make it an object to be passed by reference to Splash.render()
+        this.hops = {value: 5}; //10EN: have to make it an object to be passed by reference to Splash.render()
         this.hopsLeft = {value: this.hops.value}; //EN: initial value
+        this.crossBonus = 10; //EN: Score increase for crossing
+        this.levelUpBonus = 20; //EN: Score increase for level completion
         break;
       case 3:
         this.level = lvl;
         this.waterNum = 5;
         this.waterBlocks = [0, 2, 3, 4, 6];
         this.waterLife = 5;
-        this.hops = {value: 15};
+        this.hops = {value: 5};//15
         this.hopsLeft = {value: this.hops.value};
+        this.crossBonus = 15;
+        this.levelUpBonus = 30;
         break;
       case 4:
         this.level = lvl;
         this.waterNum = 5;
         this.waterBlocks = [1, 2, 3, 4, 5];
         this.waterLife = 4;
-        this.hops = {value: 20};
+        this.hops = {value: 5};//20
         this.hopsLeft = {value: this.hops.value};
+        this.crossBonus = 20;
+        this.levelUpBonus = 40;
         break;
       case 5:
         this.level = lvl;
         this.waterNum = 6;
         this.waterBlocks = [0, 1, 2, 4, 5, 6];
         this.waterLife = 3;
-        this.hops = {value: 25};
+        this.hops = {value: 5};//25
         this.hopsLeft = {value: this.hops.value};
+        this.crossBonus = 25;
+        this.levelUpBonus = 50;
         break;
       default: //EN: Level 1
         this.level = lvl;
@@ -77,10 +85,12 @@ var Engine = (function(global) {
         this.waterLife = 10;
         this.hops = {value: 5};
         this.hopsLeft = {value: this.hops.value};
+        this.crossBonus = 5;
+        this.levelUpBonus = 10;
     };
   }
 
-  global.currentLevel = new Level(2);
+  global.currentLevel = new Level(1); //EN: ititial level
 
   /*
    * EN: The initial canvas dimensions are 851 by 730 px, it looks best in the
@@ -182,8 +192,19 @@ var Engine = (function(global) {
    * render methods.
    */
   function updateEntities(dt) {
+    updateLevel();
     for (var row = 0; row < 3; row++) {
       for (var num1 = 0; num1 < allEnemies[row].length; num1++) {
+        /*
+         * EN: Comment the next line to turn off collisions if you want
+         * to check all levels without having to worry about enemies.
+         * You'll still have to avoid water, though.
+         */
+        player.checkCollisions(allEnemies[row][num1]);
+        /*
+         * EN: Checking collisions of each bug with everyone else in the same
+         * row except himself.
+         */
         for (var num2 = 0; num2 < allEnemies[row].length; num2++) {
           if (num1 !== num2) {
             allEnemies[row][num1].checkCollisions(allEnemies[row][num2]);
@@ -195,6 +216,21 @@ var Engine = (function(global) {
       });
     }
     player.update();
+  }
+
+  var updateLevel = function() {
+    if (player.lives.value === -1) {
+      // TODO: hall of fame
+      reset();
+    } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level < 5) {
+      var lvl = currentLevel.level + 1;
+      global.currentLevel = new Level(lvl);
+      allEnemies = [];
+      allEnemies = addEnemies(lvl);
+    } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level === 5){
+      // TODO: hall of frame
+      reset();
+    }
   }
 
   var updateBgTime = 0; //EN: timer for changing background pattern in renderBackground()
@@ -249,7 +285,7 @@ var Engine = (function(global) {
         }
         updateBgTime = 0;
       }
-      global.waterBlocks = currentLevel.waterBlocks; //EN: to be used in app.js to detect when the character 'dies'
+
       for (row = 0; row < numRows; row++) {
         for (col = 0; col < numCols; col++) {
           /* The drawImage function of the canvas' context element
@@ -275,6 +311,7 @@ var Engine = (function(global) {
         }
       }
       updateBgTime += dt;
+      frame.render();
     };
     renderBackground();
     renderEntities();
@@ -302,9 +339,11 @@ var Engine = (function(global) {
    * those sorts of things. It's only called once by the init() method.
    */
   function reset() {
-    level = 1;
-    lives = 3;
-    player.health.value = 100;
+    global.currentLevel = new Level(1);
+    allEnemies = [];
+    allEnemies = addEnemies(currentLevel.level);
+    player.lives.value = 3;
+    player.health.value = player.healthInitial;
     player.score.value = 0;
   }
 
@@ -322,6 +361,8 @@ var Engine = (function(global) {
     'images/blue-bug.png',
     'images/red-bug.png',
     'images/rainbow-bug.png',
+    'images/heart-small.png',
+    'images/health-bar.png',
     'images/char-boy.png',
     'images/char-horn-girl.png'
   ]);
@@ -334,9 +375,6 @@ var Engine = (function(global) {
   global.ctx = ctx;
   global.ctxSplash = ctxSplash;
   global.ratio = ratio;
-//  global.level = level;
   global.canvas = canvas;
   global.canvasSplash = canvasSplash;
-//  global.hops = hops;
-//  global.hopsLeft = hopsLeft;
 })(this);

@@ -87,7 +87,7 @@ RainbowBug.prototype.constructor = RainbowBug;
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
 
-function addEnemies(lvl) {
+var addEnemies = function(lvl) {
   var enemies = [];
   switch (lvl) {
     case 2:
@@ -157,29 +157,49 @@ var player = {
   avatar: 'images/char-boy.png',
   x: 3, //EN: initial position; 0 to 6
   y: 4, //EN: initial position - grass row (for player rows are 0 to 4)
-  health: {value: 100}, //EN: initial value
-  score: {value: 0},
   /*
-   *EN: 'lives' is an object, so it can be passed to the Splash.render()
-   * function by reference
-   */
+  * EN: 'lives' and somer other properties are objects, so that they can be
+  * passed by reference to various render() functions, whose properties'
+  * values will be dynamically updated.
+  */
   lives: {value: 3}, //EN: initial value
+  healthInitial: 100,
+  health: {value: this.healthInitial},
+  score: {value: 0},
   update: function() {
     /*
      * EN: What happens when the player hits the top row
      */
     if (this.y === 0) {
-      if (waterBlocks.includes(this.x)) {
-        splashDrown.render();
-        this.y = 4;
-        this.x = 3;
-        this.lives.value--;
-      } else {
-        splashCrossed.render();
-        this.y = 4;
-        this.x = 3;
+      var position = this.x;
+      this.y = 4;
+      this.x = 3;
+      if (!currentLevel.waterBlocks.includes(position)) { //EN: succesfully crossed
+        var splashCrossed = new Splash('crossed'); //EN: have to create a new object every time so that it grabs the updated value of hopsLeft
         currentLevel.hopsLeft.value--;
+        player.score.value += currentLevel.crossBonus;
+        if (currentLevel.hopsLeft.value > 0) {
+          splashCrossed.render();
+        } else if (currentLevel.level < 5) {
+          var splashLevelUp = new Splash('level up');
+          splashLevelUp.render();
+        } else {
+          splashWin.render();
+        }
+      } else if (this.lives.value > 0) { //EN: loss of life restores health
+        this.lives.value--;
+        this.health.value = this.healthInitial;
+        splashDrown.render();
+      } else {
+        this.lives.value--;
+        splashGameOver.render();
       }
+    }
+    if (this.health.value <= 0) {
+      console.log('Health is 0: ' + this.health.value);
+      this.lives.value--;
+      this.health.value = this.healthInitial;
+      console.log('Lives: ' + this.lives.value);
     }
   },
   render: function(rto) {
@@ -201,8 +221,29 @@ var player = {
       case 'down':
         if (this.y < 4) this.y++;
         break;
-      default:
-        console.log(code);
+    }
+  },
+  checkCollisions: function(enemy) {
+    var playerX = 72 - 51 + this.x * 101; //EN: player's x is 0..6
+    if (this.y === enemy.y + 1 &&
+        playerX <= enemy.x + 101 &&
+        playerX + 101 > enemy.x + 51) { //EN: half the width is added/removed for more natural feel of collisions
+      this.y = 4;
+      this.x = 3;
+      if (enemy instanceof BrownBug) {
+        this.health.value -= 10;
+      } else if (enemy instanceof BlueBug) {
+        this.health.value -= 15;
+      } else if (enemy instanceof RedBug) {
+        this.health.value -= 20;
+      } else if (enemy instanceof RainbowBug) {
+        this.health.value -= 25;
+      } else {
+        console.log('What kind of bug was that?!');
+      }
+      if (this.lives.value >= 0 && this.health.value > 0) { //EN: the last 'OUCH!' shouldn't prevent the 'GAME OVER' splash
+        splashHit.render();
+      } else {splashGameOver.render();}
     }
   }
 };
@@ -227,40 +268,112 @@ var Splash = function(reason) {
       this.content = player.lives;
       this.fillColor = 'rgba(193, 95, 72, 0.5)';
       this.strokeColor = 'rgba(128, 0, 0, 1)';
+      this.duration = 3; //EN: passed to the setInterval()
+    break;
+    case 'hit':
+      this.content = {value: 'OUCH!'};
+      this.fillColor = 'rgba(128, 0, 0, 0.7)';
+      this.strokeColor = 'rgba(228, 157, 157, 1)';
+      this.duration = 1;
     break;
     case 'crossed':
       this.content = currentLevel.hopsLeft;
       this.fillColor = 'rgba(95, 193, 72, 0.5)';
       this.strokeColor = 'rgba(0, 128, 0, 1)';
+      this.duration = 3;
     break;
-    default:
-      this.content = currentLevel.level;
+    case 'game over': //EN: lives === -1
+      this.content = {value: 'GAME OVER'};
+      this.fillColor = 'rgba(200, 72, 72, 0.5)';
+      this.strokeColor = 'rgba(88, 0, 0, 1)';
+      this.duration = 15;
+    break;
+    case 'level up': //EN: new level
+      this.content = {value: currentLevel.level + 1};
       this.fillColor = 'rgba(72, 95, 193, 0.5)';
       this.strokeColor = 'rgba(0, 0, 128, 1)';
+      this.duration = 8;
+    break;
+    case 'win': //EN: finished level 5
+      this.content = {value: 'HURRAY!'};
+      this.fillColor = 'rgba(255, 200, 10, 0.7)';
+      this.strokeColor = 'rgba(155, 100, 2, 1)';
+      this.duration = 15;
+    break;
   }
 };
 
+canvasSplash.available = true; //EN: to prevent conflucts between splashes
 Splash.prototype.render = function() {
-  var size = 0;
-  var interval = setInterval(zoom, 3);
-  var self = this;
-  function zoom() {
-    if (size === 300) {
-      ctxSplash.clearRect(0, 0, canvasSplash.width, canvasSplash.height);
-      clearInterval(interval);
-    } else {
-      ctxSplash.clearRect(0, 0, canvasSplash.width, canvasSplash.height);
-      ctxSplash.font = size + 'px sans-serif';
-      ctxSplash.fillStyle = self.fillColor;
-      ctxSplash.strokeStyle = self.strokeColor;
-      ctxSplash.textAlign = 'center';
-      ctxSplash.textBaseline = 'middle';
-      ctxSplash.fillText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);
-      ctxSplash.strokeText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);
-      size++;
+  if (canvasSplash.available === true) {
+    canvasSplash.available = false;
+    var size = 0;
+    var interval = setInterval(zoom, this.duration);
+    var self = this;
+    function zoom() {
+      if (size === 300) {
+        ctxSplash.clearRect(0, 0, canvasSplash.width, canvasSplash.height);
+        clearInterval(interval);
+        canvasSplash.available = true;
+      } else {
+        ctxSplash.clearRect(0, 0, canvasSplash.width, canvasSplash.height);
+        ctxSplash.font = size + 'px "Baloo"';
+        ctxSplash.fillStyle = self.fillColor;
+        ctxSplash.strokeStyle = self.strokeColor;
+        ctxSplash.lineWidth = size / 50;
+        ctxSplash.textAlign = 'center';
+        ctxSplash.textBaseline = 'middle';
+        ctxSplash.fillText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);
+        ctxSplash.strokeText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);
+        size++;
+      }
     }
   }
 };
 
 var splashDrown = new Splash('drowned');
-var splashCrossed = new Splash('crossed');
+var splashHit = new Splash('hit');
+var splashGameOver = new Splash('game over');
+var splashWin = new Splash('win');
+
+var frame = {
+  render: function() {
+    ctx.scale(ratio, ratio);
+    /*
+     * EN: Level and score indicators
+     */
+    var lvl = currentLevel.level;
+    ctx.font = '55px "Baloo"';
+    ctx.fillStyle = 'rgb(95, 193, 72)';
+    ctx.strokeStyle = 'rgb(107, 87, 97)';
+    ctx.lineWidth = 2;
+    ctx.fillText('LEVEL ' + lvl, 72, 110);
+    ctx.strokeText('LEVEL ' + lvl, 72, 110);
+
+    var score = player.score.value;
+    ctx.font = '35px "Baloo"';
+    ctx.fillStyle = 'rgb(162, 195, 168)';
+    ctx.fillText('SCORE: ' + score, 72, 170);
+    ctx.strokeText('SCORE: ' + score, 72, 170);
+
+    /*
+     * EN: Lives and health indicators
+     */
+    var lives = player.lives.value;
+    for (var i = 0; i < lives; i++) {
+      ctx.drawImage(Resources.get('images/heart-small.png'), 851 - 72 - (i + 1) * 55, 44); //EN: 851px is the original canvas.width, before scaling
+    }
+
+    var health = player.health.value;
+    var x0 = 851 - 72 - 250 * health / 100;
+    var gradient = ctx.createLinearGradient(x0, 140, x0, 170);
+    gradient.addColorStop(0, 'rgb(246, 153, 107)');
+    gradient.addColorStop(0.3, 'rgb(229, 67, 0)');
+    gradient.addColorStop(0.6, 'rgb(229, 67, 0)');
+    gradient.addColorStop(1, 'rgb(192, 56, 0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x0, 140, 250 * health / 100, 30);
+    ctx.strokeRect(851 - 72 - 250, 140, 250, 30);
+    ctx.scale(1 / ratio, 1 / ratio);
+  }
+};

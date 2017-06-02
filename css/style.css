@@ -1,8 +1,7 @@
-body {
-  margin: 0;
-}
+@import url('https://fonts.googleapis.com/css?family=Baloo');
 
 body {
+  margin: 0;
   display: flex;
   width: 100vw;
   height: 100vh;
