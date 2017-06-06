@@ -154,7 +154,8 @@ var addEnemies = function(lvl) {
 var allEnemies = addEnemies(currentLevel.level);
 
 var player = {
-  avatar: 'images/char-boy.png',
+  avatar: undefined,
+//  avatar: 'images/char-boy.png',
   x: 3, //EN: initial position; 0 to 6
   y: 4, //EN: initial position - grass row (for player rows are 0 to 4)
   /*
@@ -165,8 +166,10 @@ var player = {
   lives: {value: 3}, //EN: initial value
   healthInitial: 100,
   health: {value: this.healthInitial},
+  invincible: false, //EN: health doesn't decrease, but the player can drown
   score: {value: 0},
   update: function() {
+    this.invincibilityUpdate();
     /*
      * EN: What happens when the player hits the top row
      */
@@ -189,10 +192,10 @@ var player = {
       } else if (this.lives.value > 0) { //EN: loss of life restores health
         this.lives.value--;
         this.health.value = this.healthInitial;
+        this.invincible = false;
         splashDrown.render();
       } else {
         this.lives.value--;
-        splashGameOver.render();
       }
     }
     if (this.health.value <= 0) {
@@ -201,11 +204,30 @@ var player = {
       this.health.value = this.healthInitial;
       console.log('Lives: ' + this.lives.value);
     }
+    if (this.lives.value < 0) splashGameOver.render();
   },
-  render: function(rto) {
-    ctx.scale(rto, rto);
-    ctx.drawImage(Resources.get(this.avatar), 72 + this.x * 101, 212 + (this.y - 1) * 83);
-    ctx.scale(1 / rto, 1 / rto);
+  invincTimer: 0,
+  invincibilityUpdate: function () {
+    if (this.invincible === true) {
+      if (this.invincTimer < 7) { //EN: invincibility duration
+        this.invincTimer += dt;
+      } else {
+        this.invincible = false;
+        this.invincTimer = 0;
+      }
+    }
+  },
+  render: function() {
+    if (this.avatar === undefined) {
+      charSelectSplash.render();
+    } else {
+      ctx.scale(ratio, ratio);
+      if (this.invincible === true) {
+        ctx.drawImage(Resources.get('images/glow.png'), 72 + this.x * 101, 212 + (this.y - 1) * 83);
+      }
+      ctx.drawImage(Resources.get(this.avatar), 72 + this.x * 101, 212 + (this.y - 1) * 83);
+      ctx.scale(1 / ratio, 1 / ratio);
+    }
   },
   handleInput: function(code) {
     switch (code) {
@@ -225,25 +247,27 @@ var player = {
   },
   checkCollisions: function(enemy) {
     var playerX = 72 - 51 + this.x * 101; //EN: player's x is 0..6
-    if (this.y === enemy.y + 1 &&
+    if (player.invincible === false) {
+      if (this.y === enemy.y + 1 &&
         playerX <= enemy.x + 101 &&
         playerX + 101 > enemy.x + 51) { //EN: half the width is added/removed for more natural feel of collisions
-      this.y = 4;
-      this.x = 3;
-      if (enemy instanceof BrownBug) {
-        this.health.value -= 10;
-      } else if (enemy instanceof BlueBug) {
-        this.health.value -= 15;
-      } else if (enemy instanceof RedBug) {
-        this.health.value -= 20;
-      } else if (enemy instanceof RainbowBug) {
-        this.health.value -= 25;
-      } else {
-        console.log('What kind of bug was that?!');
+          this.y = 4;
+          this.x = 3;
+          if (enemy instanceof BrownBug) {
+            this.health.value -= 10;
+          } else if (enemy instanceof BlueBug) {
+            this.health.value -= 15;
+          } else if (enemy instanceof RedBug) {
+            this.health.value -= 20;
+          } else if (enemy instanceof RainbowBug) {
+            this.health.value -= 25;
+          } else {
+            console.log('What kind of bug was that?!');
+          }
+          if (this.lives.value >= 0 && this.health.value > 0) { //EN: the last 'OUCH!' shouldn't prevent the 'GAME OVER' splash
+          splashHit.render();
+        }
       }
-      if (this.lives.value >= 0 && this.health.value > 0) { //EN: the last 'OUCH!' shouldn't prevent the 'GAME OVER' splash
-        splashHit.render();
-      } else {splashGameOver.render();}
     }
   }
 };
@@ -256,10 +280,14 @@ document.addEventListener('keyup', function(e) {
     37: 'left',
     38: 'up',
     39: 'right',
-    40: 'down'
+    40: 'down',
+    13: 'enter'
   };
-
-  player.handleInput(allowedKeys[e.keyCode]);
+  if (player.avatar === undefined) {
+  charSelectSplash.selectChar(allowedKeys[e.keyCode]);
+  } else {
+    player.handleInput(allowedKeys[e.keyCode]);
+  }
 });
 
 var Splash = function(reason) {
@@ -347,6 +375,7 @@ var frame = {
     ctx.fillStyle = 'rgb(95, 193, 72)';
     ctx.strokeStyle = 'rgb(107, 87, 97)';
     ctx.lineWidth = 2;
+    ctx.textAlign = 'left';
     ctx.fillText('LEVEL ' + lvl, 72, 110);
     ctx.strokeText('LEVEL ' + lvl, 72, 110);
 
@@ -377,3 +406,195 @@ var frame = {
     ctx.scale(1 / ratio, 1 / ratio);
   }
 };
+
+/*
+ * EN: Coordinates for bonuses: x = 0..6 - the same as for the player, y = 1..3
+ */
+var Bonus = function() {
+  //EN: Initial position - outside the canvas. At random moments they'll be moved to the canvas.
+  this.x = -10;
+  this.y = -10;
+  this.timer = 7;
+}
+Bonus.prototype.render = function() {
+  ctx.scale(ratio, ratio);
+  ctx.drawImage(Resources.get(this.sprite), 72 + this.x * 101, 212 + (this.y - 1) * 83);
+  ctx.scale(1 / ratio, 1 / ratio);
+}
+
+var HeartBonus = function() {
+  Bonus.call(this);
+  this.sprite = 'images/heart-shadow.png';
+  this.onHit = function() {
+    if (player.lives.value < 9) { //EN: maximum amount of lives is 9
+      player.lives.value++;
+    } else {
+      player.score.value += 20;
+    }
+  };
+}
+HeartBonus.prototype = Object.create(Bonus.prototype);
+HeartBonus.prototype.constructor = HeartBonus;
+
+var YellowGemBonus = function() {
+  Bonus.call(this);
+  this.sprite = 'images/Gem Orange.png';
+  this.onHit = function() {
+    player.score.value += 5;
+  };
+}
+YellowGemBonus.prototype = Object.create(Bonus.prototype);
+YellowGemBonus.prototype.constructor = YellowGemBonus;
+
+var KeyBonus = function() {
+  Bonus.call(this);
+  this.sprite = 'images/Key.png';
+  this.onHit = function() {
+    player.invincible = true;
+  };
+}
+KeyBonus.prototype = Object.create(Bonus.prototype);
+KeyBonus.prototype.constructor = KeyBonus;
+
+var BlueGemBonus = function() {
+  Bonus.call(this);
+  this.sprite = 'images/Gem Blue.png';
+  this.onHit = function() {
+    player.score.value += 15;
+  };
+}
+BlueGemBonus.prototype = Object.create(Bonus.prototype);
+BlueGemBonus.prototype.constructor = BlueGemBonus;
+
+var GreenGemBonus = function() {
+  Bonus.call(this);
+  this.sprite = 'images/Gem Green.png';
+  this.onHit = function() {
+    player.score.value += 25;
+  };
+}
+GreenGemBonus.prototype = Object.create(Bonus.prototype);
+GreenGemBonus.prototype.constructor = GreenGemBonus;
+
+var RockBonus = function() {
+  Bonus.call(this);
+  this.sprite = 'images/Rock.png';
+  this.onHit = function() { //EN: nothing happens, needed for bonus.onHit() call
+  };
+}
+RockBonus.prototype = Object.create(Bonus.prototype);
+RockBonus.prototype.constructor = RockBonus;
+
+var PurpleRockBonus = function() {
+  Bonus.call(this);
+  this.sprite = 'images/Rock Purple.png';
+  this.onHit = function() {
+    player.x = 3;
+    player.y = 4;
+    player.health.value -= 5;
+  };
+}
+PurpleRockBonus.prototype = Object.create(Bonus.prototype);
+PurpleRockBonus.prototype.constructor = PurpleRockBonus;
+
+var bonuses = {
+  allBonuses: [],
+  newLevel: function(lvl) { //EN: create the array before calling newLevel()
+    switch (lvl) {
+      case 1:
+      this.allBonuses.push(
+        new YellowGemBonus(),
+        new HeartBonus()
+      );
+      break;
+      case 2:
+      this.allBonuses.push(
+        new BlueGemBonus()
+      );
+      break;
+      case 3:
+      this.allBonuses.push(
+        new GreenGemBonus(),
+        new KeyBonus()
+      );
+      break;
+      case 4:
+      this.allBonuses.push(
+        new RockBonus()
+      );
+      break;
+      case 5:
+      this.allBonuses.push(
+        new PurpleRockBonus()
+      );
+      break;
+    }
+  }
+}
+
+
+  var charSelectSplash = {
+    avatars: [
+      'images/char-boy.png',
+      'images/char-cat-girl.png',
+      'images/char-horn-girl.png',
+      'images/char-pink-girl.png',
+      'images/char-princess-girl.png'
+    ],
+    currentAvatar: 0,
+    render: function() {
+      ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, 851, 730);
+      ctx.fillStyle = 'rgba(246, 255, 213, 0.7)';
+      ctx.fillRect(0, 0, 851, 730);
+      ctx.font = '55px "Baloo"';
+      ctx.fillStyle = 'rgb(95, 193, 72)';
+      ctx.strokeStyle = 'rgb(107, 87, 97)';
+      ctx.lineWidth = 2;
+      ctx.textAlign = 'center';
+      ctx.fillText('SELECT', 851 / 2, 130);
+      ctx.strokeText('SELECT', 851 / 2, 130);
+      ctx.fillText('THE CHARACTER', 851 / 2, 235);
+      ctx.strokeText('THE CHARACTER', 851 / 2, 235);
+      ctx.fillStyle = 'rgb(162, 195, 168)';
+      ctx.fillText('THEN PRESS ENTER', 851 / 2, 600);
+      ctx.strokeText('THEN PRESS ENTER', 851 / 2, 600);
+
+      ctx.drawImage(Resources.get(this.avatars[this.currentAvatar]), 851 / 2 - 51, 300)
+
+      var gradient = ctx.createLinearGradient(0, 365, 0, 395);
+      gradient.addColorStop(0, 'rgb(246, 153, 107)');
+      gradient.addColorStop(0.3, 'rgb(229, 67, 0)');
+      gradient.addColorStop(0.6, 'rgb(229, 67, 0)');
+      gradient.addColorStop(1, 'rgb(192, 56, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillText('\u2190', 851 / 3, 380);
+      ctx.fillText('\u2192', 851 / 3 * 2, 380);
+      ctx.scale(1 / ratio, 1 / ratio);
+
+      // document.addEventListener('keyup', function(e) {
+      //   var allowedKeys = {
+      //     37: 'left',
+      //     39: 'right',
+      //     13: 'enter'
+      //   };
+      //   selectChar(allowedKeys[e.keyCode]);
+      // });
+    },
+    selectChar: function(code) {
+      switch (code) {
+        case 'left':
+        if (this.currentAvatar < this.avatars.length - 1) {
+          this.currentAvatar++;
+        } else this.currentAvatar = 0;
+        break;
+        case 'right':
+        if (this.currentAvatar > 0) {
+          this.currentAvatar--;
+        } else this.currentAvatar = this.avatars.length - 1;
+        break;
+        case 'enter':
+        player.avatar = this.avatars[this.currentAvatar];
+      }
+    }
+  };

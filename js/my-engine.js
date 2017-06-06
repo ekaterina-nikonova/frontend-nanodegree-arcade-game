@@ -10,7 +10,7 @@
  * - added global vars to be used in app.js (ratio, level, dt, waterBlocks)
  * - canvasSplash is added to display levels, score, remaining lives etc.
  * on top of the game screen
- * - levelUpdate() function is added to track the current level and level-ups
+ * - updateLevel() function is added to track the current level and level-ups
  */
 
 var Engine = (function(global) {
@@ -215,20 +215,60 @@ var Engine = (function(global) {
         enemy.update(dt, canvas);
       });
     }
+    bonusPickUp();
+    updateBonuses();
     player.update();
   }
 
+  var updateBonusesTime = 0;
+  var updateBonuses = function() {
+    if (updateBonusesTime > currentLevel.waterLife) {
+      bonuses.allBonuses.forEach(function(bonus) {
+        bonus.x = -10;
+        bonus.y = -10;
+      });
+      var rnd = parseInt((Math.random() * 10).toFixed());
+      if (bonuses.allBonuses.length > rnd) {
+        var rndX = parseInt((Math.random() * 6).toFixed());
+        var rndY = parseInt((Math.random() * 2 + 1).toFixed());
+//        console.log(rnd + '; x = ' + rndX + ', y = ' + rndY); //EN: uncomment to see where bonuses are when they appear on the canvas
+        bonuses.allBonuses[rnd].x = rndX;
+        bonuses.allBonuses[rnd].y = rndY;
+        updateBonusesTime = 0;
+      }
+    }
+    updateBonusesTime += dt;
+  }
+
+  var bonusPickUp = function() {
+    bonuses.allBonuses.forEach(function(bonus) {
+      if (bonus.x === player.x && bonus.y === player.y) {
+        bonus.onHit();
+        bonus.x = -10;
+        bonus.y = -10;
+      }
+    });
+  }
+
   var updateLevel = function() {
+    /*
+     * EN: When the player loses the last life and all remaining health
+     */
     if (player.lives.value === -1) {
-      // TODO: hall of fame
       reset();
+    /*
+     * EN: Level-up
+     */
     } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level < 5) {
       var lvl = currentLevel.level + 1;
       global.currentLevel = new Level(lvl);
       allEnemies = [];
       allEnemies = addEnemies(lvl);
+      bonuses.newLevel(lvl);
+    /*
+     * EN: When the 5th level is completed
+     */
     } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level === 5){
-      // TODO: hall of frame
       reset();
     }
   }
@@ -314,7 +354,14 @@ var Engine = (function(global) {
       frame.render();
     };
     renderBackground();
+    renderBonuses();
     renderEntities();
+  }
+
+  function renderBonuses() {
+    bonuses.allBonuses.forEach(function(bonus) {
+      bonus.render();
+    });
   }
 
   /* This function is called by the render function and is called on each game
@@ -327,11 +374,11 @@ var Engine = (function(global) {
      */
     allEnemies.forEach(function(row) {
       row.forEach(function(enemy) {
-        enemy.render(ratio);
+        enemy.render();
       });
     })
 
-    player.render(ratio);
+    player.render();
   }
 
   /* This function does nothing but it could have been a good place to
@@ -339,12 +386,16 @@ var Engine = (function(global) {
    * those sorts of things. It's only called once by the init() method.
    */
   function reset() {
+    player.avatar = undefined;
     global.currentLevel = new Level(1);
     allEnemies = [];
     allEnemies = addEnemies(currentLevel.level);
+    bonuses.allBonuses = [];
+    bonuses.newLevel(currentLevel.level);
     player.lives.value = 3;
     player.health.value = player.healthInitial;
     player.score.value = 0;
+    player.invincible = false;
   }
 
   /* Go ahead and load all of the images we know we're going to need to
@@ -362,10 +413,22 @@ var Engine = (function(global) {
     'images/red-bug.png',
     'images/rainbow-bug.png',
     'images/heart-small.png',
-    'images/health-bar.png',
     'images/char-boy.png',
-    'images/char-horn-girl.png'
+    'images/char-cat-girl.png',
+    'images/char-horn-girl.png',
+    'images/char-pink-girl.png',
+    'images/char-princess-girl.png',
+    'images/glow.png',
+    'images/Key.png',
+    'images/heart-shadow.png',
+    'images/Gem Orange.png',
+    'images/Gem Green.png',
+    'images/Gem Blue.png',
+    'images/Key.png',
+    'images/Rock.png',
+    'images/Rock Purple.png'
   ]);
+
   Resources.onReady(init);
 
   /* Assign the canvas' context object to the global variable (the window
