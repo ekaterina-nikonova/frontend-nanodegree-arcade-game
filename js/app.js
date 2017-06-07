@@ -230,19 +230,39 @@ var player = {
     }
   },
   handleInput: function(code) {
-    switch (code) {
-      case 'left':
-        if (this.x > 0) this.x--;
+    if (currentLevel.level < 4) { //EN: rocks are to be detected on levels 4 and 5
+      switch (code) {
+        case 'left':
+          if (this.x > 0) this.x--;
+          break;
+        case 'up':
+          if (this.y > 0) this.y--;
+          break;
+        case 'right':
+          if (this.x < 6) this.x++;
+          break;
+        case 'down':
+          if (this.y < 4) this.y++;
+          break;
+      }
+    } else {
+      var rockX = bonuses.allBonuses[5].x; //EN: grey rock is always #5
+      var rockY = bonuses.allBonuses[5].y;
+      switch (code) {
+        case 'left':
+        if (this.x > 0 && !(this.y === rockY && this.x === rockX + 1)) this.x--;
         break;
-      case 'up':
-        if (this.y > 0) this.y--;
+        case 'up':
+        if (this.y > 0 && !(this.x === rockX && this.y === rockY + 1)) this.y--;
         break;
-      case 'right':
-        if (this.x < 6) this.x++;
+        case 'right':
+        if (this.x < 6 && !(this.y === rockY && this.x === rockX - 1)) this.x++;
         break;
-      case 'down':
-        if (this.y < 4) this.y++;
+        case 'down':
+        if (this.y < 4 && !(this.x === rockX && this.y === rockY - 1)) this.y++;
         break;
+      }
+
     }
   },
   checkCollisions: function(enemy) {
@@ -250,7 +270,7 @@ var player = {
     if (player.invincible === false) {
       if (this.y === enemy.y + 1 &&
         playerX <= enemy.x + 101 &&
-        playerX + 101 > enemy.x + 51) { //EN: half the width is added/removed for more natural feel of collisions
+        playerX + 101 > enemy.x + 51) { //EN: adjustment by half the width for more natural feel of collisions
           this.y = 4;
           this.x = 3;
           if (enemy instanceof BrownBug) {
@@ -287,6 +307,40 @@ document.addEventListener('keyup', function(e) {
   charSelectSplash.selectChar(allowedKeys[e.keyCode]);
   } else {
     player.handleInput(allowedKeys[e.keyCode]);
+  }
+});
+
+/*
+ * EN: Mouse and touch input for mobile browsers
+ */
+document.addEventListener('click', function(e) {
+  var move,
+    playerX = ratio * (72 + player.x * 101 + 51) + (window.innerWidth - canvas.width) / 2,
+    playerY = ratio * (242 + player.y * 83) + (window.innerHeight - canvas.height) / 2;
+    console.log('X: ' + e.clientX + ', ' + playerX);
+    console.log('Y: ' + e.clientY + ', ' + playerY);
+  if (Math.abs(e.clientX - playerX) < 51) {
+      move = (e.clientY < playerY) ? 'up' : 'down';
+    } else if (Math.abs(e.clientY - playerY) < 51) {
+      move = (e.clientX < playerX) ? 'left' : 'right';
+    }
+  if (player.avatar === undefined) {
+    $(window).on('swipeleft', function(e) {
+      move = 'left';
+    });
+    $(window).on('swiperight', function(e) {
+      move = 'right';
+    });
+    $(window).on('taphold', function(e) {
+      move = 'enter';
+    });
+  }
+  if (player.avatar === undefined) {
+    charSelectSplash.selectChar(move);
+    console.log('Moved: ' + move);
+  } else {
+    player.handleInput(move);
+    console.log('Moved: ' + move);
   }
 });
 
@@ -491,6 +545,9 @@ var PurpleRockBonus = function() {
   this.onHit = function() {
     player.x = 3;
     player.y = 4;
+    if (player.health.value >= 5 || player.lives.value > 0) {
+      splashHit.render();
+    }
     player.health.value -= 5;
   };
 }
