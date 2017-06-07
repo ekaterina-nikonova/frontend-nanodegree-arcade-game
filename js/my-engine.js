@@ -8,9 +8,10 @@
  * chooses random columns to replace their top blocks with water and updates
  * the water pattern according to the value of waterLife
  * - added global vars to be used in app.js (ratio, level, dt, waterBlocks)
- * - canvasSplash is added to display levels, score, remaining lives etc.
+ * - canvasSplash canvas is added to display levels, score, remaining lives etc.
  * on top of the game screen
- * - updateLevel() function is added to track the current level and level-ups
+ * - updateLevel() function is added to track the state of the current level
+ * and level-ups
  */
 
 var Engine = (function(global) {
