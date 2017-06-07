@@ -1,4 +1,13 @@
 @import url('https://fonts.googleapis.com/css?family=Baloo');
+/* EN: .ui-loader and .ui-page are from jQuery Mobile*/
+/*.ui-loader {
+  display: none;
+}
+
+.ui-page {
+  display: flex;
+  margin: auto;
+}*/
 
 body {
   margin: 0;

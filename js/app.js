@@ -311,7 +311,7 @@ document.addEventListener('keyup', function(e) {
 });
 
 /*
- * EN: Mouse and touch input for mobile browsers
+ * EN: Mouse input for mobile browsers
  */
 document.addEventListener('click', function(e) {
   var move,
@@ -319,21 +319,26 @@ document.addEventListener('click', function(e) {
     playerY = ratio * (242 + player.y * 83) + (window.innerHeight - canvas.height) / 2;
     console.log('X: ' + e.clientX + ', ' + playerX);
     console.log('Y: ' + e.clientY + ', ' + playerY);
-  if (Math.abs(e.clientX - playerX) < 51) {
+  if (player.avatar === undefined) {
+    /*
+     * EN: Switch-range is slow:  https://stackoverflow.com/questions/6665997/switch-statement-for-greater-than-less-than
+     */
+    if (e.clientX > window.innerWidth / 2 + 100) {
+      move = 'right';
+      console.log('Fwd: ' + move);
+    } else if (e.clientX < window.innerWidth / 2 - 100) {
+      console.log('Back: ' + move);
+      move = 'left';
+    } else {
+      move = 'enter';
+      console.log('Start! ' + move);
+    }
+  } else {
+    if (Math.abs(e.clientX - playerX) < 51) {
       move = (e.clientY < playerY) ? 'up' : 'down';
     } else if (Math.abs(e.clientY - playerY) < 51) {
       move = (e.clientX < playerX) ? 'left' : 'right';
     }
-  if (player.avatar === undefined) {
-    $(window).on('swipeleft', function(e) {
-      move = 'left';
-    });
-    $(window).on('swiperight', function(e) {
-      move = 'right';
-    });
-    $(window).on('taphold', function(e) {
-      move = 'enter';
-    });
   }
   if (player.avatar === undefined) {
     charSelectSplash.selectChar(move);
