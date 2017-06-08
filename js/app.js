@@ -498,7 +498,7 @@ YellowGemBonus.prototype.constructor = YellowGemBonus;
 
 var KeyBonus = function() {
   Bonus.call(this);
-  this.sprite = 'images/key.png';
+  this.sprite = 'images/Key.png';
   this.onHit = function() {
     player.invincible = true;
   };
@@ -528,7 +528,7 @@ GreenGemBonus.prototype.constructor = GreenGemBonus;
 
 var RockBonus = function() {
   Bonus.call(this);
-  this.sprite = 'images/rock.png';
+  this.sprite = 'images/Rock.png';
   this.onHit = function() { //EN: nothing happens, needed for bonus.onHit() call
   };
 }

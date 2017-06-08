@@ -421,13 +421,12 @@ var Engine = (function(global) {
     'images/char-pink-girl.png',
     'images/char-princess-girl.png',
     'images/glow.png',
-    'images/key.png',
     'images/heart-shadow.png',
     'images/gem-orange.png',
     'images/gem-green.png',
     'images/gem-blue.png',
-    'images/key.png',
-    'images/rock.png',
+    'images/Key.png',
+    'images/Rock.png',
     'images/rock-purple.png'
   ]);
 
