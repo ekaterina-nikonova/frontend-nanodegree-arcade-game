@@ -16,7 +16,7 @@
 
 - I have considerably altered the Udacity's engine and tried to make the comments as detailed as possible. The summary of major changes can be found in the beginning of _my-engine.js_. I haven't removed original comments. The ones I have added begin with _"EN:"_ - also in _app.js_, for consistency.
 
-- A simplified structure of the _app.js_ file is shown below:
+- A simplified structure of the _app.js_ file is shown below (please click the image if it does not show):
 
   ![App structure](/images/svgs/app-structure.svg)
 

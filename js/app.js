@@ -488,7 +488,7 @@ HeartBonus.prototype.constructor = HeartBonus;
 
 var YellowGemBonus = function() {
   Bonus.call(this);
-  this.sprite = 'images/Gem Orange.png';
+  this.sprite = 'images/gem-orange.png';
   this.onHit = function() {
     player.score.value += 5;
   };
@@ -498,7 +498,7 @@ YellowGemBonus.prototype.constructor = YellowGemBonus;
 
 var KeyBonus = function() {
   Bonus.call(this);
-  this.sprite = 'images/Key.png';
+  this.sprite = 'images/key.png';
   this.onHit = function() {
     player.invincible = true;
   };
@@ -508,7 +508,7 @@ KeyBonus.prototype.constructor = KeyBonus;
 
 var BlueGemBonus = function() {
   Bonus.call(this);
-  this.sprite = 'images/Gem Blue.png';
+  this.sprite = 'images/gem-blue.png';
   this.onHit = function() {
     player.score.value += 15;
   };
@@ -518,7 +518,7 @@ BlueGemBonus.prototype.constructor = BlueGemBonus;
 
 var GreenGemBonus = function() {
   Bonus.call(this);
-  this.sprite = 'images/Gem Green.png';
+  this.sprite = 'images/gem-green.png';
   this.onHit = function() {
     player.score.value += 25;
   };
@@ -528,7 +528,7 @@ GreenGemBonus.prototype.constructor = GreenGemBonus;
 
 var RockBonus = function() {
   Bonus.call(this);
-  this.sprite = 'images/Rock.png';
+  this.sprite = 'images/rock.png';
   this.onHit = function() { //EN: nothing happens, needed for bonus.onHit() call
   };
 }
@@ -537,7 +537,7 @@ RockBonus.prototype.constructor = RockBonus;
 
 var PurpleRockBonus = function() {
   Bonus.call(this);
-  this.sprite = 'images/Rock Purple.png';
+  this.sprite = 'images/rock-purple.png';
   this.onHit = function() {
     player.x = 3;
     player.y = 4;

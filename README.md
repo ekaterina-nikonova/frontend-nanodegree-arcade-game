@@ -55,13 +55,13 @@ Though most bonuses are pleasant or useful items you can collect, some of them a
 
 Bonus|What it does
 ------------ | -------------
-![Yellow gem](/images/Gem Orange.png)|+ 5 points
-![Blue gem](/images/Gem Blue.png)|+ 15 points
-![Green gem](/images/Gem Green.png)|+ 25 points
+![Yellow gem](/images/gem-orange.png)|+ 5 points
+![Blue gem](/images/gem-blue.png)|+ 15 points
+![Green gem](/images/gem-green.png)|+ 25 points
 ![Heart](/images/heart-shadow.png)|+ 1 life
-![Key](/images/Key.png)|Invincibility
-![Rock](/images/Rock.png)|Block
-![Purple rock](/images/Rock Purple.png)|- 5 health
+![Key](/images/key.png)|Invincibility
+![Rock](/images/rock.png)|Block
+![Purple rock](/images/rock-purple.png)|- 5 health
 
 ### Invincibility
 If you get hold of a golden key, you're a lucky one! It makes you immune to bugs so that you can reach target tiles and collect items without risk of being hit, but only for a **limited time**! Golden glow around the character indicates invincibility:
@@ -74,6 +74,8 @@ Rocks are "negative bonuses" that are present at levels 4 and 5. They also appea
 
 Purple rocks are harmful! Unlike bugs, they don't move, but reduce the character's health and return him or her to the starting position:
 ![Purple rock](/images/screenshots/purple-rock-screenshot.png)
+
+Also keep in mind that the golden key only makes you immune to bugs, but not to purple rocks.
 
 ## Tips and tricks
 - If the situation looks hopeless, especially at higher levels, be patient and wait for the key bonus to appear close to you. Then all you'll have to worry about for a few seconds is water pools, as you lose invincibility after losing a life.
