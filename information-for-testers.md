@@ -18,7 +18,7 @@
 
 - A simplified structure of the _app.js_ file is shown below (please click the image if it does not show):
 
-  ![App structure](/images/svgs/app-structure.svg)
+  ![App structure](https://raw.githubusercontent.com/ekaterina-nikonova/frontend-nanodegree-arcade-game/master/images/svgs/app-structure.svg)
 
   It displays main functions and properties of objects in _app.js_ and where they are used, also in _my-engine.js_.
 
