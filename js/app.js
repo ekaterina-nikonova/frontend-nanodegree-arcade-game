@@ -6,7 +6,7 @@ var Enemy = function(row, startX) {
 
   // The image/sprite for our enemies, this uses
   // a helper we've provided to easily load images
-  this.sprite = 'images/enemy-bug.png';
+//  this.sprite = 'images/enemy-bug.png'; //EN: we never instantiate the Enemy class and never use this sprite
   this.x = -1 * startX; //EN: starting point outside the canvas
   this.y = row; //EN: one of three rows of stone blocks, 0 to 2
   this.defaultSpeed = 200 * (Math.random() + 1);
@@ -199,10 +199,8 @@ var player = {
       }
     }
     if (this.health.value <= 0) {
-      console.log('Health is 0: ' + this.health.value);
       this.lives.value--;
       this.health.value = this.healthInitial;
-      console.log('Lives: ' + this.lives.value);
     }
     if (this.lives.value < 0) splashGameOver.render();
   },
@@ -317,21 +315,16 @@ document.addEventListener('click', function(e) {
   var move,
     playerX = ratio * (72 + player.x * 101 + 51) + (window.innerWidth - canvas.width) / 2,
     playerY = ratio * (242 + player.y * 83) + (window.innerHeight - canvas.height) / 2;
-    console.log('X: ' + e.clientX + ', ' + playerX);
-    console.log('Y: ' + e.clientY + ', ' + playerY);
   if (player.avatar === undefined) {
     /*
      * EN: Switch-range is slow:  https://stackoverflow.com/questions/6665997/switch-statement-for-greater-than-less-than
      */
     if (e.clientX > window.innerWidth / 2 + 100) {
       move = 'right';
-      console.log('Fwd: ' + move);
     } else if (e.clientX < window.innerWidth / 2 - 100) {
-      console.log('Back: ' + move);
       move = 'left';
     } else {
       move = 'enter';
-      console.log('Start! ' + move);
     }
   } else {
     if (Math.abs(e.clientX - playerX) < 51) {
@@ -342,10 +335,8 @@ document.addEventListener('click', function(e) {
   }
   if (player.avatar === undefined) {
     charSelectSplash.selectChar(move);
-    console.log('Moved: ' + move);
   } else {
     player.handleInput(move);
-    console.log('Moved: ' + move);
   }
 });
 
@@ -595,68 +586,59 @@ var bonuses = {
 }
 
 
-  var charSelectSplash = {
-    avatars: [
-      'images/char-boy.png',
-      'images/char-cat-girl.png',
-      'images/char-horn-girl.png',
-      'images/char-pink-girl.png',
-      'images/char-princess-girl.png'
-    ],
-    currentAvatar: 0,
-    render: function() {
-      ctx.scale(ratio, ratio);
-      ctx.clearRect(0, 0, 851, 730);
-      ctx.fillStyle = 'rgba(246, 255, 213, 0.7)';
-      ctx.fillRect(0, 0, 851, 730);
-      ctx.font = '55px "Baloo"';
-      ctx.fillStyle = 'rgb(95, 193, 72)';
-      ctx.strokeStyle = 'rgb(107, 87, 97)';
-      ctx.lineWidth = 2;
-      ctx.textAlign = 'center';
-      ctx.fillText('SELECT', 851 / 2, 130);
-      ctx.strokeText('SELECT', 851 / 2, 130);
-      ctx.fillText('THE CHARACTER', 851 / 2, 235);
-      ctx.strokeText('THE CHARACTER', 851 / 2, 235);
-      ctx.fillStyle = 'rgb(162, 195, 168)';
-      ctx.fillText('THEN PRESS ENTER', 851 / 2, 600);
-      ctx.strokeText('THEN PRESS ENTER', 851 / 2, 600);
+var charSelectSplash = {
+  avatars: [
+    'images/char-boy.png',
+    'images/char-cat-girl.png',
+    'images/char-horn-girl.png',
+    'images/char-pink-girl.png',
+    'images/char-princess-girl.png'
+  ],
+  currentAvatar: 0,
+  render: function() {
+    ctx.scale(ratio, ratio);
+    ctx.clearRect(0, 0, 851, 730);
+    ctx.fillStyle = 'rgba(246, 255, 213, 0.7)';
+    ctx.fillRect(0, 0, 851, 730);
+    ctx.font = '55px "Baloo"';
+    ctx.fillStyle = 'rgb(95, 193, 72)';
+    ctx.strokeStyle = 'rgb(107, 87, 97)';
+    ctx.lineWidth = 2;
+    ctx.textAlign = 'center';
+    ctx.fillText('SELECT', 851 / 2, 130);
+    ctx.strokeText('SELECT', 851 / 2, 130);
+    ctx.fillText('THE CHARACTER', 851 / 2, 235);
+    ctx.strokeText('THE CHARACTER', 851 / 2, 235);
+    ctx.fillStyle = 'rgb(162, 195, 168)';
+    ctx.fillText('THEN PRESS ENTER', 851 / 2, 600);
+    ctx.strokeText('THEN PRESS ENTER', 851 / 2, 600);
 
-      ctx.drawImage(Resources.get(this.avatars[this.currentAvatar]), 851 / 2 - 51, 300)
+    ctx.drawImage(Resources.get(this.avatars[this.currentAvatar]), 851 / 2 - 51, 300)
 
-      var gradient = ctx.createLinearGradient(0, 365, 0, 395);
-      gradient.addColorStop(0, 'rgb(246, 153, 107)');
-      gradient.addColorStop(0.3, 'rgb(229, 67, 0)');
-      gradient.addColorStop(0.6, 'rgb(229, 67, 0)');
-      gradient.addColorStop(1, 'rgb(192, 56, 0)');
-      ctx.fillStyle = gradient;
-      ctx.fillText('\u2190', 851 / 3, 380);
-      ctx.fillText('\u2192', 851 / 3 * 2, 380);
-      ctx.scale(1 / ratio, 1 / ratio);
-
-      // document.addEventListener('keyup', function(e) {
-      //   var allowedKeys = {
-      //     37: 'left',
-      //     39: 'right',
-      //     13: 'enter'
-      //   };
-      //   selectChar(allowedKeys[e.keyCode]);
-      // });
-    },
-    selectChar: function(code) {
-      switch (code) {
-        case 'left':
-        if (this.currentAvatar < this.avatars.length - 1) {
-          this.currentAvatar++;
-        } else this.currentAvatar = 0;
-        break;
-        case 'right':
-        if (this.currentAvatar > 0) {
-          this.currentAvatar--;
-        } else this.currentAvatar = this.avatars.length - 1;
-        break;
-        case 'enter':
-        player.avatar = this.avatars[this.currentAvatar];
-      }
+    var gradient = ctx.createLinearGradient(0, 365, 0, 395);
+    gradient.addColorStop(0, 'rgb(246, 153, 107)');
+    gradient.addColorStop(0.3, 'rgb(229, 67, 0)');
+    gradient.addColorStop(0.6, 'rgb(229, 67, 0)');
+    gradient.addColorStop(1, 'rgb(192, 56, 0)');
+    ctx.fillStyle = gradient;
+    ctx.fillText('\u2190', 851 / 3, 380);
+    ctx.fillText('\u2192', 851 / 3 * 2, 380);
+    ctx.scale(1 / ratio, 1 / ratio);
+  },
+  selectChar: function(code) {
+    switch (code) {
+      case 'left':
+      if (this.currentAvatar < this.avatars.length - 1) {
+        this.currentAvatar++;
+      } else this.currentAvatar = 0;
+      break;
+      case 'right':
+      if (this.currentAvatar > 0) {
+        this.currentAvatar--;
+      } else this.currentAvatar = this.avatars.length - 1;
+      break;
+      case 'enter':
+      player.avatar = this.avatars[this.currentAvatar];
     }
-  };
+  }
+};

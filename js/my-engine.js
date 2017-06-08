@@ -10,8 +10,8 @@
  * - added global vars to be used in app.js (ratio, level, dt, waterBlocks)
  * - canvasSplash canvas is added to display levels, score, remaining lives etc.
  * on top of the game screen
- * - updateLevel() function is added to track the state of the current level
- * and level-ups
+ * - Level.update() is used to track the state of the current level
+ * and level ups
  */
 
 var Engine = (function(global) {
@@ -36,7 +36,7 @@ var Engine = (function(global) {
     * the number of water blocks (waterNum),
     * their initial pattern (waterBlocks),
     * how often the pattern changes (waterLive) and
-    * how many times the top must be reached before level-up (hops).
+    * how many times the top must be reached before level up (hops).
     */
     switch (lvl) {
       case 2:
@@ -44,7 +44,7 @@ var Engine = (function(global) {
         this.waterNum = 4;
         this.waterBlocks = [0, 2, 4, 6];
         this.waterLife = 8;
-        this.hops = {value: 5}; //10EN: have to make it an object to be passed by reference to Splash.render()
+        this.hops = {value: 10}; //EN: have to make it an object to be passed by reference to Splash.render()
         this.hopsLeft = {value: this.hops.value}; //EN: initial value
         this.crossBonus = 10; //EN: Score increase for crossing
         this.levelUpBonus = 20; //EN: Score increase for level completion
@@ -54,7 +54,7 @@ var Engine = (function(global) {
         this.waterNum = 5;
         this.waterBlocks = [0, 2, 3, 4, 6];
         this.waterLife = 5;
-        this.hops = {value: 5};//15
+        this.hops = {value: 15};
         this.hopsLeft = {value: this.hops.value};
         this.crossBonus = 15;
         this.levelUpBonus = 30;
@@ -64,7 +64,7 @@ var Engine = (function(global) {
         this.waterNum = 5;
         this.waterBlocks = [1, 2, 3, 4, 5];
         this.waterLife = 4;
-        this.hops = {value: 5};//20
+        this.hops = {value: 20};
         this.hopsLeft = {value: this.hops.value};
         this.crossBonus = 20;
         this.levelUpBonus = 40;
@@ -74,7 +74,7 @@ var Engine = (function(global) {
         this.waterNum = 6;
         this.waterBlocks = [0, 1, 2, 4, 5, 6];
         this.waterLife = 3;
-        this.hops = {value: 5};//25
+        this.hops = {value: 25};
         this.hopsLeft = {value: this.hops.value};
         this.crossBonus = 25;
         this.levelUpBonus = 50;
@@ -89,6 +89,31 @@ var Engine = (function(global) {
         this.crossBonus = 5;
         this.levelUpBonus = 10;
     };
+  }
+
+  Level.prototype.update = function() {
+    /*
+     * EN: When the player loses the last life and all remaining health
+     */
+    if (player.lives.value === -1) {
+      reset();
+    /*
+     * EN: Level up
+     */
+    } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level < 5) {
+      var lvl = currentLevel.level + 1;
+      player.invincible = false;
+      player.health.value = player.healthInitial;
+      global.currentLevel = new Level(lvl);
+      allEnemies = [];
+      allEnemies = addEnemies(lvl);
+      bonuses.newLevel(lvl);
+    /*
+     * EN: When the 5th level is completed
+     */
+    } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level === 5){
+      reset();
+    }
   }
 
   global.currentLevel = new Level(1); //EN: ititial level
@@ -193,7 +218,7 @@ var Engine = (function(global) {
    * render methods.
    */
   function updateEntities(dt) {
-    updateLevel();
+    currentLevel.update();
     for (var row = 0; row < 3; row++) {
       for (var num1 = 0; num1 < allEnemies[row].length; num1++) {
         /*
@@ -232,7 +257,6 @@ var Engine = (function(global) {
       if (bonuses.allBonuses.length > rnd) {
         var rndX = parseInt((Math.random() * 6).toFixed());
         var rndY = parseInt((Math.random() * 2 + 1).toFixed());
-//        console.log(rnd + '; x = ' + rndX + ', y = ' + rndY); //EN: uncomment to see where bonuses are when they appear on the canvas
         bonuses.allBonuses[rnd].x = rndX;
         bonuses.allBonuses[rnd].y = rndY;
         updateBonusesTime = 0;
@@ -249,29 +273,6 @@ var Engine = (function(global) {
         bonus.y = -10;
       }
     });
-  }
-
-  var updateLevel = function() {
-    /*
-     * EN: When the player loses the last life and all remaining health
-     */
-    if (player.lives.value === -1) {
-      reset();
-    /*
-     * EN: Level-up
-     */
-    } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level < 5) {
-      var lvl = currentLevel.level + 1;
-      global.currentLevel = new Level(lvl);
-      allEnemies = [];
-      allEnemies = addEnemies(lvl);
-      bonuses.newLevel(lvl);
-    /*
-     * EN: When the 5th level is completed
-     */
-    } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level === 5){
-      reset();
-    }
   }
 
   var updateBgTime = 0; //EN: timer for changing background pattern in renderBackground()
@@ -408,7 +409,7 @@ var Engine = (function(global) {
     'images/stone-block.png',
     'images/water-block.png',
     'images/grass-block.png',
-    'images/enemy-bug.png',
+//    'images/enemy-bug.png', //EN: never used
     'images/brown-bug.png',
     'images/blue-bug.png',
     'images/red-bug.png',
