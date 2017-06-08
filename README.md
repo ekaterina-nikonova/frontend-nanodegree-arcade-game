@@ -59,8 +59,8 @@ Bonus|What it does
 ![Blue gem](/images/gem-blue.png)|+ 15 points
 ![Green gem](/images/gem-green.png)|+ 25 points
 ![Heart](/images/heart-shadow.png)|+ 1 life
-![Key](/images/key.png)|Invincibility
-![Rock](/images/rock.png)|Block
+![Key](/images/Key.png)|Invincibility
+![Rock](/images/Rock.png)|Block
 ![Purple rock](/images/rock-purple.png)|- 5 health
 
 ### Invincibility
