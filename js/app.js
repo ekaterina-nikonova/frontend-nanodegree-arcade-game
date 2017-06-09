@@ -11,17 +11,18 @@ var Enemy = function(row, startX) {
   this.y = row; //EN: one of three rows of stone blocks, 0 to 2
   this.defaultSpeed = 200 * (Math.random() + 1);
   this.speed = this.defaultSpeed;
-  /*
-   * EN: When a bug bumps into another one within the canvas borders,
-   * they swap speeds.
-   */
-  this.checkCollisions = function(other) {
-    if (this.x + 101 >= other.x && this.x < other.x) {
-      other.x += this.x + 101 - other.x; //EN: to prevent interlacing
-      var temp = this.speed;
-      this.speed = other.speed;
-      other.speed = temp;
-    }
+};
+
+/*
+* EN: When a bug bumps into another one within the canvas borders,
+* they swap speeds.
+*/
+Enemy.prototype.checkCollisions = function(other) {
+  if (this.x + 101 >= other.x && this.x < other.x) {
+    other.x += this.x + 101 - other.x; //EN: to prevent interlacing
+    var temp = this.speed;
+    this.speed = other.speed;
+    other.speed = temp;
   }
 };
 
@@ -153,143 +154,165 @@ var addEnemies = function(lvl) {
 
 var allEnemies = addEnemies(currentLevel.level);
 
-var player = {
-  avatar: undefined,
-//  avatar: 'images/char-boy.png',
-  x: 3, //EN: initial position; 0 to 6
-  y: 4, //EN: initial position - grass row (for player rows are 0 to 4)
+var Player = function() {
+  this.avatar = undefined;
+  this.x = 3; //EN: initial position; 0 to 6
+  this.y = 4; //EN: initial position - grass row (for player rows are 0 to 4)
   /*
   * EN: 'lives' and somer other properties are objects, so that they can be
   * passed by reference to various render() functions, whose properties'
   * values will be dynamically updated.
   */
-  lives: {value: 3}, //EN: initial value
-  healthInitial: 100,
-  health: {value: this.healthInitial},
-  invincible: false, //EN: health doesn't decrease, but the player can drown
-  score: {value: 0},
-  update: function() {
-    this.invincibilityUpdate();
-    /*
-     * EN: What happens when the player hits the top row
-     */
-    if (this.y === 0) {
-      var position = this.x;
-      this.y = 4;
-      this.x = 3;
-      if (!currentLevel.waterBlocks.includes(position)) { //EN: succesfully crossed
-        var splashCrossed = new Splash('crossed'); //EN: have to create a new object every time so that it grabs the updated value of hopsLeft
-        currentLevel.hopsLeft.value--;
-        player.score.value += currentLevel.crossBonus;
-        if (currentLevel.hopsLeft.value > 0) {
-          splashCrossed.render();
-        } else if (currentLevel.level < 5) {
-          var splashLevelUp = new Splash('level up');
-          splashLevelUp.render();
-        } else {
-          splashWin.render();
-        }
-      } else if (this.lives.value > 0) { //EN: loss of life restores health
-        this.lives.value--;
-        this.health.value = this.healthInitial;
-        this.invincible = false;
-        splashDrown.render();
+  this.lives = {value: 3}; //EN: initial value
+  this.healthInitial = 100;
+  this.health = {value: this.healthInitial};
+  this.invincible = false; //EN: health doesn't decrease, but the player can drown
+  this.score = {value: 0};
+};
+
+Player.prototype.update = function() {
+  this.invincibilityUpdate();
+  /*
+  * EN: What happens when the player hits the top row
+  */
+  if (this.y === 0) {
+    var position = this.x;
+    this.y = 4;
+    this.x = 3;
+    if (!currentLevel.waterBlocks.includes(position)) { //EN: succesfully crossed
+      var splashCrossed = new Splash('crossed'); //EN: have to create a new object every time so that it grabs the updated value of hopsLeft
+      currentLevel.hopsLeft.value--;
+      player.score.value += currentLevel.crossBonus;
+      if (currentLevel.hopsLeft.value > 0) {
+        splashCrossed.render();
+      } else if (currentLevel.level < 5) {
+        var splashLevelUp = new Splash('level up');
+        splashLevelUp.render();
       } else {
-        this.lives.value--;
+        splashWin.render();
       }
-    }
-    if (this.health.value <= 0) {
+    } else if (this.lives.value > 0) { //EN: loss of life restores health
       this.lives.value--;
       this.health.value = this.healthInitial;
-    }
-    if (this.lives.value < 0) splashGameOver.render();
-  },
-  invincTimer: 0,
-  invincibilityUpdate: function () {
-    if (this.invincible === true) {
-      if (this.invincTimer < 7) { //EN: invincibility duration
-        this.invincTimer += dt;
-      } else {
-        this.invincible = false;
-        this.invincTimer = 0;
-      }
-    }
-  },
-  render: function() {
-    if (this.avatar === undefined) {
-      charSelectSplash.render();
+      this.invincible = false;
+      splashDrown.render();
     } else {
-      ctx.scale(ratio, ratio);
-      if (this.invincible === true) {
-        ctx.drawImage(Resources.get('images/glow.png'), 72 + this.x * 101, 212 + (this.y - 1) * 83);
-      }
-      ctx.drawImage(Resources.get(this.avatar), 72 + this.x * 101, 212 + (this.y - 1) * 83);
-      ctx.scale(1 / ratio, 1 / ratio);
+      this.lives.value--;
     }
-  },
-  handleInput: function(code) {
-    if (currentLevel.level < 4) { //EN: rocks are to be detected on levels 4 and 5
-      switch (code) {
-        case 'left':
-          if (this.x > 0) this.x--;
-          break;
-        case 'up':
-          if (this.y > 0) this.y--;
-          break;
-        case 'right':
-          if (this.x < 6) this.x++;
-          break;
-        case 'down':
-          if (this.y < 4) this.y++;
-          break;
-      }
-    } else {
-      var rockX = bonuses.allBonuses[5].x; //EN: grey rock is always #5
-      var rockY = bonuses.allBonuses[5].y;
-      switch (code) {
-        case 'left':
-        if (this.x > 0 && !(this.y === rockY && this.x === rockX + 1)) this.x--;
-        break;
-        case 'up':
-        if (this.y > 0 && !(this.x === rockX && this.y === rockY + 1)) this.y--;
-        break;
-        case 'right':
-        if (this.x < 6 && !(this.y === rockY && this.x === rockX - 1)) this.x++;
-        break;
-        case 'down':
-        if (this.y < 4 && !(this.x === rockX && this.y === rockY - 1)) this.y++;
-        break;
-      }
+  }
+  if (this.health.value <= 0) {
+    this.lives.value--;
+    this.health.value = this.healthInitial;
+  }
+  if (this.lives.value < 0) splashGameOver.render();
+};
 
+/*
+ * EN: This is a part of Player.update() checking if the player
+ * is invincible.
+ */
+var invincTimer = 0;
+Player.prototype.invincibilityUpdate = function() {
+  if (this.invincible === true) {
+    if (invincTimer < 7) { //EN: invincibility duration
+      invincTimer += dt;
+    } else {
+      this.invincible = false;
+      invincTimer = 0;
     }
-  },
-  checkCollisions: function(enemy) {
-    var playerX = 72 - 51 + this.x * 101; //EN: player's x is 0..6
-    if (player.invincible === false) {
-      if (this.y === enemy.y + 1 &&
-        playerX <= enemy.x + 101 &&
-        playerX + 101 > enemy.x + 51) { //EN: adjustment by half the width for more natural feel of collisions
-          this.y = 4;
-          this.x = 3;
-          if (enemy instanceof BrownBug) {
-            this.health.value -= 10;
-          } else if (enemy instanceof BlueBug) {
-            this.health.value -= 15;
-          } else if (enemy instanceof RedBug) {
-            this.health.value -= 20;
-          } else if (enemy instanceof RainbowBug) {
-            this.health.value -= 25;
-          } else {
-            console.log('What kind of bug was that?!');
-          }
-          if (this.lives.value >= 0 && this.health.value > 0) { //EN: the last 'OUCH!' shouldn't prevent the 'GAME OVER' splash
-          splashHit.render();
+  }
+};
+
+/*
+ * EN: The situation "avatar === undefined" occurs before the game begins
+ * or after the game is over. If the character is invincible, the glow
+ * is rendered first.
+ */
+Player.prototype.render = function() {
+  if (this.avatar === undefined) {
+    charSelectSplash.render();
+  } else {
+    ctx.scale(ratio, ratio);
+    if (this.invincible === true) {
+      ctx.drawImage(Resources.get('images/glow.png'), 72 + this.x * 101, 212 + (this.y - 1) * 83);
+    }
+    ctx.drawImage(Resources.get(this.avatar), 72 + this.x * 101, 212 + (this.y - 1) * 83);
+    ctx.scale(1 / ratio, 1 / ratio);
+  }
+};
+
+/*
+ * EN: Before level 4 we don't need to check if there is a grey rock
+ * in a position where we're going to move.
+ */
+Player.prototype.handleInput = function(code) {
+  if (currentLevel.level < 4) {
+    switch (code) {
+      case 'left':
+      if (this.x > 0) this.x--;
+      break;
+      case 'up':
+      if (this.y > 0) this.y--;
+      break;
+      case 'right':
+      if (this.x < 6) this.x++;
+      break;
+      case 'down':
+      if (this.y < 4) this.y++;
+      break;
+    }
+  } else {
+    var rockX = bonuses.allBonuses[5].x; //EN: grey rock is always #5
+    var rockY = bonuses.allBonuses[5].y;
+    switch (code) {
+      case 'left':
+      if (this.x > 0 && !(this.y === rockY && this.x === rockX + 1)) this.x--;
+      break;
+      case 'up':
+      if (this.y > 0 && !(this.x === rockX && this.y === rockY + 1)) this.y--;
+      break;
+      case 'right':
+      if (this.x < 6 && !(this.y === rockY && this.x === rockX - 1)) this.x++;
+      break;
+      case 'down':
+      if (this.y < 4 && !(this.x === rockX && this.y === rockY - 1)) this.y++;
+      break;
+    }
+  }
+};
+
+/*
+ * EN: To keep the function small, we only check collisions with enemies.
+ * "Collisions" with bonuses are checked in the bonusPickUp() function in
+ * my-engine.js file.
+ */
+Player.prototype.checkCollisions = function(enemy) {
+  var playerX = 72 - 51 + this.x * 101; //EN: player's x is 0..6
+  if (player.invincible === false) {
+    if (this.y === enemy.y + 1 &&
+      playerX <= enemy.x + 101 &&
+      playerX + 101 > enemy.x + 51) { //EN: adjustment by half the width for more natural feel of collisions
+        this.y = 4;
+        this.x = 3;
+        if (enemy instanceof BrownBug) {
+          this.health.value -= 10;
+        } else if (enemy instanceof BlueBug) {
+          this.health.value -= 15;
+        } else if (enemy instanceof RedBug) {
+          this.health.value -= 20;
+        } else if (enemy instanceof RainbowBug) {
+          this.health.value -= 25;
+        } else {
+          console.log('What kind of bug was that?!');
         }
+        if (this.lives.value >= 0 && this.health.value > 0) { //EN: the last 'OUCH!' shouldn't prevent the 'GAME OVER' splash
+        splashHit.render();
       }
     }
   }
 };
 
+var player = new Player();
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
@@ -383,29 +406,29 @@ var Splash = function(reason) {
 
 canvasSplash.available = true; //EN: to prevent conflucts between splashes
 Splash.prototype.render = function() {
+  var self = this;
+  function zoom() {
+    if (size === 300) {
+      ctxSplash.clearRect(0, 0, canvasSplash.width, canvasSplash.height);
+      clearInterval(interval);
+      canvasSplash.available = true;
+    } else {
+      ctxSplash.clearRect(0, 0, canvasSplash.width, canvasSplash.height);
+      ctxSplash.font = size + 'px "Baloo"';
+      ctxSplash.fillStyle = self.fillColor;
+      ctxSplash.strokeStyle = self.strokeColor;
+      ctxSplash.lineWidth = size / 50;
+      ctxSplash.textAlign = 'center';
+      ctxSplash.textBaseline = 'middle';
+      ctxSplash.fillText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);
+      ctxSplash.strokeText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);
+      size++;
+    }
+  }
   if (canvasSplash.available === true) {
     canvasSplash.available = false;
     var size = 0;
     var interval = setInterval(zoom, this.duration);
-    var self = this;
-    function zoom() {
-      if (size === 300) {
-        ctxSplash.clearRect(0, 0, canvasSplash.width, canvasSplash.height);
-        clearInterval(interval);
-        canvasSplash.available = true;
-      } else {
-        ctxSplash.clearRect(0, 0, canvasSplash.width, canvasSplash.height);
-        ctxSplash.font = size + 'px "Baloo"';
-        ctxSplash.fillStyle = self.fillColor;
-        ctxSplash.strokeStyle = self.strokeColor;
-        ctxSplash.lineWidth = size / 50;
-        ctxSplash.textAlign = 'center';
-        ctxSplash.textBaseline = 'middle';
-        ctxSplash.fillText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);
-        ctxSplash.strokeText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);
-        size++;
-      }
-    }
   }
 };
 
@@ -465,12 +488,12 @@ var Bonus = function() {
   this.x = -10;
   this.y = -10;
   this.timer = 7;
-}
+};
 Bonus.prototype.render = function() {
   ctx.scale(ratio, ratio);
   ctx.drawImage(Resources.get(this.sprite), 72 + this.x * 101, 212 + (this.y - 1) * 83);
   ctx.scale(1 / ratio, 1 / ratio);
-}
+};
 
 var HeartBonus = function() {
   Bonus.call(this);
@@ -482,7 +505,7 @@ var HeartBonus = function() {
       player.score.value += 20;
     }
   };
-}
+};
 HeartBonus.prototype = Object.create(Bonus.prototype);
 HeartBonus.prototype.constructor = HeartBonus;
 
@@ -492,7 +515,7 @@ var YellowGemBonus = function() {
   this.onHit = function() {
     player.score.value += 5;
   };
-}
+};
 YellowGemBonus.prototype = Object.create(Bonus.prototype);
 YellowGemBonus.prototype.constructor = YellowGemBonus;
 
@@ -502,7 +525,7 @@ var KeyBonus = function() {
   this.onHit = function() {
     player.invincible = true;
   };
-}
+};
 KeyBonus.prototype = Object.create(Bonus.prototype);
 KeyBonus.prototype.constructor = KeyBonus;
 
@@ -512,7 +535,7 @@ var BlueGemBonus = function() {
   this.onHit = function() {
     player.score.value += 15;
   };
-}
+};
 BlueGemBonus.prototype = Object.create(Bonus.prototype);
 BlueGemBonus.prototype.constructor = BlueGemBonus;
 
@@ -522,7 +545,7 @@ var GreenGemBonus = function() {
   this.onHit = function() {
     player.score.value += 25;
   };
-}
+};
 GreenGemBonus.prototype = Object.create(Bonus.prototype);
 GreenGemBonus.prototype.constructor = GreenGemBonus;
 
@@ -531,7 +554,7 @@ var RockBonus = function() {
   this.sprite = 'images/Rock.png';
   this.onHit = function() { //EN: nothing happens, needed for bonus.onHit() call
   };
-}
+};
 RockBonus.prototype = Object.create(Bonus.prototype);
 RockBonus.prototype.constructor = RockBonus;
 
@@ -546,7 +569,7 @@ var PurpleRockBonus = function() {
     }
     player.health.value -= 5;
   };
-}
+};
 PurpleRockBonus.prototype = Object.create(Bonus.prototype);
 PurpleRockBonus.prototype.constructor = PurpleRockBonus;
 
@@ -583,7 +606,7 @@ var bonuses = {
       break;
     }
   }
-}
+};
 
 
 var charSelectSplash = {
@@ -613,7 +636,7 @@ var charSelectSplash = {
     ctx.fillText('THEN PRESS ENTER', 851 / 2, 600);
     ctx.strokeText('THEN PRESS ENTER', 851 / 2, 600);
 
-    ctx.drawImage(Resources.get(this.avatars[this.currentAvatar]), 851 / 2 - 51, 300)
+    ctx.drawImage(Resources.get(this.avatars[this.currentAvatar]), 851 / 2 - 51, 300);
 
     var gradient = ctx.createLinearGradient(0, 365, 0, 395);
     gradient.addColorStop(0, 'rgb(246, 153, 107)');

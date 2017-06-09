@@ -13,8 +13,8 @@
  * - Level.update() is used to track the state of the current level
  * and level ups
  */
-
 var Engine = (function(global) {
+  'use strict';
   /* Predefine the variables we'll be using within this scope,
    * create the canvas element, grab the 2D context for that canvas
    * set the canvas elements height/width and add it to the DOM.
@@ -30,7 +30,6 @@ var Engine = (function(global) {
     ctxSplash = canvasSplash.getContext('2d');
 
   var Level = function(lvl) {
-    level: lvl;
     /*
     * EN: Based on the level, we define:
     * the number of water blocks (waterNum),
@@ -88,8 +87,8 @@ var Engine = (function(global) {
         this.hopsLeft = {value: this.hops.value};
         this.crossBonus = 5;
         this.levelUpBonus = 10;
-    };
-  }
+    }
+  };
 
   Level.prototype.update = function() {
     /*
@@ -114,7 +113,7 @@ var Engine = (function(global) {
     } else if (currentLevel.hopsLeft.value === 0 && currentLevel.level === 5){
       reset();
     }
-  }
+  };
 
   global.currentLevel = new Level(1); //EN: ititial level
 
@@ -142,7 +141,7 @@ var Engine = (function(global) {
     c.width *= ratio;
     c.height *= ratio;
     return ratio;
-  };
+  }
 
   ratio = drawCanvas(canvas, ctx);
   drawCanvas(canvasSplash, ctxSplash);
@@ -237,6 +236,10 @@ var Engine = (function(global) {
           }
         }
       }
+      /*
+       * EN: Linter and JSHint give a warning about this function
+       * within a loop, but we have to use it to iterate through each array.
+       */
       allEnemies[row].forEach(function(enemy) {
         enemy.update(dt, canvas);
       });
@@ -263,7 +266,7 @@ var Engine = (function(global) {
       }
     }
     updateBonusesTime += dt;
-  }
+  };
 
   var bonusPickUp = function() {
     bonuses.allBonuses.forEach(function(bonus) {
@@ -273,7 +276,7 @@ var Engine = (function(global) {
         bonus.y = -10;
       }
     });
-  }
+  };
 
   var updateBgTime = 0; //EN: timer for changing background pattern in renderBackground()
 
@@ -354,7 +357,7 @@ var Engine = (function(global) {
       }
       updateBgTime += dt;
       frame.render();
-    };
+    }
     renderBackground();
     renderBonuses();
     renderEntities();
@@ -378,7 +381,7 @@ var Engine = (function(global) {
       row.forEach(function(enemy) {
         enemy.render();
       });
-    })
+    });
 
     player.render();
   }

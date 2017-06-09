@@ -1,6 +1,6 @@
 # Information for testers and reviewers
 
-- There is a way to make testing of all levels easier. Just **toggle collisions** by commenting the line 229 in _my-engine.js_ file:
+- There is a way to make testing of all levels easier. Just **toggle collisions** by commenting the line 228 in _my-engine.js_ file:
 
     ``player.checkCollisions(allEnemies[row][num1]);``
 
@@ -8,7 +8,7 @@
 
     ``Comment the next line to turn off collisions...``
 
-    It also makes sense to decrease the number of hops, so that you don't have to get to the other side 20 times before you complete a level. To do so, find the ``switch`` in _my-engine.js_ (line 41) and reduce the value in:
+    It also makes sense to decrease the number of hops, so that you don't have to get to the other side 20 times before you complete a level. To do so, find the ``switch`` in _my-engine.js_ (line 40) and reduce the value in:
 
     ``this.hops = {value: ...};``
 
