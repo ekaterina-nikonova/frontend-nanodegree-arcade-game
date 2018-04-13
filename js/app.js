@@ -9,7 +9,7 @@ var Enemy = function(row, startX) {
 //  this.sprite = 'images/enemy-bug.png'; //EN: we never instantiate the Enemy class and never use this sprite
   this.x = -1 * startX; //EN: starting point outside the canvas
   this.y = row; //EN: one of three rows of stone blocks, 0 to 2
-  this.defaultSpeed = 200 * (Math.random() + 1);
+  this.defaultSpeed = Math.round(200 * (Math.random() + 1));
   this.speed = this.defaultSpeed;
 };
 
@@ -33,9 +33,9 @@ Enemy.prototype.update = function(dt, canvas) {
   // You should multiply any movement by the dt parameter
   // which will ensure the game runs at the same speed for
   // all computers.
-  this.x += this.speed * dt;
+  this.x += Math.round(this.speed * dt);
   if (this.x > (canvas.width + 505)) {
-    this.x = -150 * (Math.random() + 1);
+    this.x = Math.round(-150 * (Math.random() + 1));
     this.speed = this.defaultSpeed;
   }
 };
@@ -50,7 +50,7 @@ Enemy.prototype.render = function() {
 var BrownBug = function(row, startX) {
   Enemy.call(this, row, startX);
   this.sprite = 'images/brown-bug.png';
-  this.defaultSpeed = 80 * (Math.random() + 1);
+  this.defaultSpeed = Math.round(80 * (Math.random() + 1));
 };
 BrownBug.prototype = Object.create(Enemy.prototype);
 BrownBug.prototype.constructor = BrownBug;
@@ -58,7 +58,7 @@ BrownBug.prototype.constructor = BrownBug;
 var BlueBug = function(row, startX) {
   Enemy.call(this, row, startX);
   this.sprite = 'images/blue-bug.png';
-  this.defaultSpeed = 150 * (Math.random() + 1);
+  this.defaultSpeed = Math.round(150 * (Math.random() + 1));
 };
 BlueBug.prototype = Object.create(Enemy.prototype);
 BlueBug.prototype.constructor = BlueBug;
@@ -66,7 +66,7 @@ BlueBug.prototype.constructor = BlueBug;
 var RedBug = function(row, startX) {
   Enemy.call(this, row, startX);
   this.sprite = 'images/red-bug.png';
-  this.defaultSpeed = 200 * (Math.random() + 1);
+  this.defaultSpeed = Math.round(200 * (Math.random() + 1));
 };
 RedBug.prototype = Object.create(Enemy.prototype);
 RedBug.prototype.constructor = RedBug;
@@ -74,7 +74,7 @@ RedBug.prototype.constructor = RedBug;
 var RainbowBug = function(row, startX) {
   Enemy.call(this, row, startX);
   this.sprite = 'images/rainbow-bug.png';
-  this.defaultSpeed = 300 * (Math.random() + 1);
+  this.defaultSpeed = Math.round(300 * (Math.random() + 1));
 };
 RainbowBug.prototype = Object.create(Enemy.prototype);
 RainbowBug.prototype.constructor = RainbowBug;
@@ -153,6 +153,7 @@ var addEnemies = function(lvl) {
 };
 
 var allEnemies = addEnemies(currentLevel.level);
+console.log(allEnemies);
 
 var Player = function() {
   this.avatar = undefined;
@@ -336,8 +337,8 @@ document.addEventListener('keyup', function(e) {
  */
 document.addEventListener('click', function(e) {
   var move,
-    playerX = ratio * (72 + player.x * 101 + 51) + (window.innerWidth - canvas.width) / 2,
-    playerY = ratio * (242 + player.y * 83) + (window.innerHeight - canvas.height) / 2;
+    playerX = Math.round(ratio * (72 + player.x * 101 + 51) + (window.innerWidth - canvas.width) / 2),
+    playerY = Math.round(ratio * (242 + player.y * 83) + (window.innerHeight - canvas.height) / 2);
   if (player.avatar === undefined) {
     /*
      * EN: Switch-range is slow:  https://stackoverflow.com/questions/6665997/switch-statement-for-greater-than-less-than
@@ -417,7 +418,7 @@ Splash.prototype.render = function() {
       ctxSplash.font = size + 'px "Baloo"';
       ctxSplash.fillStyle = self.fillColor;
       ctxSplash.strokeStyle = self.strokeColor;
-      ctxSplash.lineWidth = size / 50;
+      ctxSplash.lineWidth = Math.round(size / 50) + 1;
       ctxSplash.textAlign = 'center';
       ctxSplash.textBaseline = 'middle';
       ctxSplash.fillText(self.content.value, canvasSplash.width / 2, canvasSplash.height / 2);

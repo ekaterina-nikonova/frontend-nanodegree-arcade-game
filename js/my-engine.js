@@ -137,7 +137,7 @@ var Engine = (function(global) {
      * vertically, we choose the dimension that differs the most from the
      * reference.
      */
-    var ratio = Math.min(window.innerWidth / refWidth, window.innerHeight / refHeight);
+    var ratio = parseFloat(Math.min(window.innerWidth / refWidth, window.innerHeight / refHeight).toFixed(1));
     c.width *= ratio;
     c.height *= ratio;
     return ratio;
@@ -256,16 +256,17 @@ var Engine = (function(global) {
         bonus.x = -10;
         bonus.y = -10;
       });
-      var rnd = parseInt((Math.random() * 10).toFixed());
+      var rnd = Math.round(Math.random() * 10);
       if (bonuses.allBonuses.length > rnd) {
-        var rndX = parseInt((Math.random() * 6).toFixed());
-        var rndY = parseInt((Math.random() * 2 + 1).toFixed());
+        var rndX = Math.round(Math.random() * 6);
+        var rndY = Math.round(Math.random() * 2 + 1);
         bonuses.allBonuses[rnd].x = rndX;
         bonuses.allBonuses[rnd].y = rndY;
         updateBonusesTime = 0;
       }
     }
-    updateBonusesTime += dt;
+    //updateBonusesTime += dt;
+    updateBonusesTime = Number.parseFloat((updateBonusesTime + dt).toFixed(2));
   };
 
   var bonusPickUp = function() {
