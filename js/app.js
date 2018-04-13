@@ -153,7 +153,6 @@ var addEnemies = function(lvl) {
 };
 
 var allEnemies = addEnemies(currentLevel.level);
-console.log(allEnemies);
 
 var Player = function() {
   this.avatar = undefined;
